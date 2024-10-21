@@ -163,27 +163,36 @@ class Conexion:
         user=user_colegios;
         password=Colegios2024"""
 
-    def ConexionSecretarias(self) -> None:
+    def ConexionDirectoresBySecretarias(self) -> None:
         conexion = pyodbc.connect(self.strConnection)
-        consulta: str = """SELECT * FROM SecEducacion_Departamental"""
+        consulta: str = "{CALL proc_select_dir_secretarias()}"  # Ajusta el nombre del procedimiento almacenado
         cursor = conexion.cursor()
         cursor.execute(consulta)
 
-        lista: list = []
+        lista_directores = []  # Cambia el nombre de la lista para reflejar que contiene directores
         for elemento in cursor:
-            entidad = SecretariaEducacion()
-            entidad.SetId(elemento[0])
-            entidad.SetNombre(elemento[1])
-            entidad.SetDireccion(elemento[2])
-            entidad.SetEmail(elemento[3])
-            entidad.SetDepartamentoId(elemento[4])
-            lista.append(entidad)
+            # Crea una instancia de Director y llena los atributos
+            director = Director()
+            director.SetId(elemento[0])  
+            director.SetNombre(elemento[1]) 
+            director.SetApellido(elemento[2])  
             
+            secretaria = SecretariaEducacion()
+            secretaria.SetNombre(elemento[3])  # secretaria_nombre
+            
+            departamento = Departamento()
+            departamento.SetNombre(elemento[4])  # departamento_nombre
+            
+            lista_directores.append(director)
+
         cursor.close()
         conexion.close()
 
-        for secretaria in lista:
-            print(f"{secretaria.GetId()} - {secretaria.GetNombre()} - {secretaria.GetDireccion()} - {secretaria.GetEmail()} - {secretaria.GetDepartamentoId()}")
+        # Imprime la información de los directores
+        for director in lista_directores:
+            print(f"Director: {director.GetId()} - {director.GetNombre()} {director.GetApellido()}")
+            print(f"  Secretaria: {secretaria.GetNombre()}")  # Imprime el nombre de la secretaria
+            print(f"  Departamento: {departamento.GetNombre()}")  # Imprime el nombre del departamento
     
     
     def ConexionDirectoresByDepartamento(self, departamento_id: int) -> None:
@@ -269,7 +278,7 @@ class Conexion:
         
         
 conexion: Conexion = Conexion()
-#conexion.ConexionSecretarias()
+conexion.ConexionDirectoresBySecretarias()
 #conexion.ConexionDirectoresByDepartamento(1)
 #conexion.ConexionInsertarColegio(102, 'Colegio Nuevo2', 'Calle 321', '123456312', 2)
 #conexion.ConexionActualizarColegio(2, 'Nueva Calle 923923', '125232')

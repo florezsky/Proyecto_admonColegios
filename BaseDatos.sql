@@ -333,7 +333,7 @@ INSERT INTO Estudiante_Asignatura (ID_Estudiante, ID_Asignatura, Fecha_matricula
 (5, 5, '2023-08-22 00:00:00');  
 
 
-
+// los directores, las secretarías que dirigen y los departamentos a los que están asociados
 DELIMITER $$
 CREATE PROCEDURE proc_select_dir_secretarias()
 BEGIN 
