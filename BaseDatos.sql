@@ -331,3 +331,97 @@ INSERT INTO Estudiante_Asignatura (ID_Estudiante, ID_Asignatura, Fecha_matricula
 (3, 3, '2023-03-30 00:00:00'),  
 (4, 4, '2023-05-10 00:00:00'), 
 (5, 5, '2023-08-22 00:00:00');  
+
+
+
+DELIMITER $$
+CREATE PROCEDURE proc_select_dir_secretarias()
+BEGIN 
+    SELECT ds.ID_Director, ds.Nombre AS director_nombre, ds.Apellido, 
+           se.Nombre AS secretaria_nombre, d.Nombre AS departamento_nombre
+    FROM DirSecretaria_Educacion ds
+    INNER JOIN SecEducacion_Departamental se ON ds.ID_Secretaria = se.ID_Secretaria
+    INNER JOIN Departamento d ON se.ID_Departamento = d.ID_Departamento;
+END$$
+
+
+
+// permite seleccionar todos los directores de las secretarías de educación de un departamento específico.
+
+DELIMITER //
+
+CREATE PROCEDURE GetDirectoresByDepartamento(IN departamento_id INT)
+BEGIN
+    SELECT d.ID_Director, d.Nombre, d.Apellido, d.Email
+    FROM DirSecretaria_Educacion d
+    JOIN SecEducacion_Departamental s ON d.ID_Secretaria = s.ID_Secretaria
+    WHERE s.ID_Departamento = departamento_id;
+END //
+
+DELIMITER ;
+
+
+// permite insertar un nuevo colegio en la base de datos.
+
+DELIMITER //
+
+CREATE PROCEDURE InsertColegio2(
+    IN id_colegio INT,
+    IN nombre VARCHAR(50),
+    IN direccion VARCHAR(50),
+    IN telefono VARCHAR(20),
+    IN id_comuna INT
+)
+BEGIN
+    INSERT INTO Colegio (ID_Colegio, Nombre, Direccion, Telefono, ID_Comuna)
+    VALUES (id_colegio, nombre, direccion, telefono, id_comuna);
+END //
+
+DELIMITER ;
+
+
+// Este procedimiento actualiza la dirección y el teléfono de un colegio existente.
+
+DELIMITER //
+
+CREATE PROCEDURE UpdateColegio(
+    IN id_colegio INT,
+    IN nueva_direccion VARCHAR(50),
+    IN nuevo_telefono VARCHAR(20)
+)
+BEGIN
+    UPDATE Colegio
+    SET Direccion = nueva_direccion, Telefono = nuevo_telefono
+    WHERE ID_Colegio = id_colegio;
+END //
+
+DELIMITER ;
+
+// Este procedimiento elimina un director de una comuna específica.
+
+DELIMITER //
+
+CREATE PROCEDURE DeleteDirector(
+    IN id_director INT
+)
+BEGIN
+    DELETE FROM Director_Comuna
+    WHERE ID_Director = id_director;
+END //
+
+DELIMITER ;
+
+// Este procedimiento devuelve el número de colegios por departamento
+
+DELIMITER //
+
+CREATE PROCEDURE GetColegiosCountByDepartamento()
+BEGIN
+    SELECT d.Nombre AS Departamento, COUNT(c.ID_Colegio) AS Total_Colegios
+    FROM Departamento d
+    LEFT JOIN Comuna cm ON cm.ID_Ciudad IN (SELECT ID_Ciudad FROM Ciudad WHERE ID_Regional IN (SELECT ID_Regional FROM Regional WHERE ID_Departamento = d.ID_Departamento))
+    LEFT JOIN Colegio c ON c.ID_Comuna = cm.ID_Comuna
+    GROUP BY d.ID_Departamento;
+END //
+
+DELIMITER ;
