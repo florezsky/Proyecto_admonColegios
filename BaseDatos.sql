@@ -60,12 +60,12 @@ INSERT INTO DirSecretaria_Educacion (ID_Director, Nombre, Apellido, Genero, Emai
 CREATE TABLE Regional (
     ID_Regional INT PRIMARY KEY,
     Nombre VARCHAR(50) NOT NULL,
-    ID_Departamento INT,
-    FOREIGN KEY (ID_Departamento) REFERENCES Departamento(ID_Departamento)
+    ID_Secretaria INT,
+    FOREIGN KEY (ID_Secretaria) REFERENCES SecEducacion_Departamental(ID_Secretaria)
 );
 
 
-INSERT INTO Regional (ID_Regional, Nombre, ID_Departamento) VALUES
+INSERT INTO Regional (ID_Regional, Nombre, ID_Secretaria) VALUES
 (1, 'Regional Antioquia', 1),
 (2, 'Regional Cundinamarca', 2),
 (3, 'Regional Pacífico', 3),
@@ -333,95 +333,1076 @@ INSERT INTO Estudiante_Asignatura (ID_Estudiante, ID_Asignatura, Fecha_matricula
 (5, 5, '2023-08-22 00:00:00');  
 
 
-// los directores, las secretarías que dirigen y los departamentos a los que están asociados
-DELIMITER $$
-CREATE PROCEDURE proc_select_dir_secretarias()
-BEGIN 
-    SELECT ds.ID_Director, ds.Nombre AS director_nombre, ds.Apellido, 
-           se.Nombre AS secretaria_nombre, d.Nombre AS departamento_nombre
-    FROM DirSecretaria_Educacion ds
-    INNER JOIN SecEducacion_Departamental se ON ds.ID_Secretaria = se.ID_Secretaria
-    INNER JOIN Departamento d ON se.ID_Departamento = d.ID_Departamento;
-END$$
-
-
-
-// permite seleccionar todos los directores de las secretarías de educación de un departamento específico.
-
+-- (1)  Procedimientos para la tabla Departamento
+-- Insertar Departamento
 DELIMITER //
-
-CREATE PROCEDURE GetDirectoresByDepartamento(IN departamento_id INT)
-BEGIN
-    SELECT d.ID_Director, d.Nombre, d.Apellido, d.Email
-    FROM DirSecretaria_Educacion d
-    JOIN SecEducacion_Departamental s ON d.ID_Secretaria = s.ID_Secretaria
-    WHERE s.ID_Departamento = departamento_id;
-END //
-
-DELIMITER ;
-
-
-// permite insertar un nuevo colegio en la base de datos.
-
-DELIMITER //
-
-CREATE PROCEDURE InsertColegio2(
-    IN id_colegio INT,
-    IN nombre VARCHAR(50),
-    IN direccion VARCHAR(50),
-    IN telefono VARCHAR(20),
-    IN id_comuna INT
+CREATE PROCEDURE InsertarDepartamento(
+    IN IID_Departamento INT,
+    IN I_Nombre VARCHAR(100)
 )
 BEGIN
-    INSERT INTO Colegio (ID_Colegio, Nombre, Direccion, Telefono, ID_Comuna)
-    VALUES (id_colegio, nombre, direccion, telefono, id_comuna);
+    INSERT INTO Departamento (ID_Departamento, Nombre)
+    VALUES (IID_Departamento, I_Nombre);
 END //
-
 DELIMITER ;
 
 
-// Este procedimiento actualiza la dirección y el teléfono de un colegio existente.
-
+-- Actualizar Departamento
 DELIMITER //
-
-CREATE PROCEDURE UpdateColegio(
-    IN id_colegio INT,
-    IN nueva_direccion VARCHAR(50),
-    IN nuevo_telefono VARCHAR(20)
+CREATE PROCEDURE ActualizarDepartamento(
+    IN AID_Departamento INT,
+    IN A_NuevoNombre VARCHAR(100)
 )
 BEGIN
-    UPDATE Colegio
-    SET Direccion = nueva_direccion, Telefono = nuevo_telefono
-    WHERE ID_Colegio = id_colegio;
-END //
-
+    UPDATE Departamento
+    SET Nombre = A_NuevoNombre
+    WHERE ID_Departamento = AID_Departamento;
+END;
 DELIMITER ;
 
-// Este procedimiento elimina un director de una comuna específica.
+
+-- Eliminar Departamento
+DELIMITER //
+CREATE PROCEDURE EliminarDepartamento(
+    IN EID_Departamento INT
+)
+BEGIN
+    DELETE FROM Departamento
+    WHERE ID_Departamento = EID_Departamento;
+END;
+DELIMITER ;
+
+
+-- Seleccionar Departamento
+DELIMITER //
+CREATE PROCEDURE SeleccionarDepartamento()
+BEGIN
+    SELECT * FROM Departamento;
+END;
+DELIMITER ;
+
+
+-- (2) Procedimientos para la tabla SecEducacion_Departamental
+-- Insertar SecEducacion_Departamental
+DELIMITER //
+CREATE PROCEDURE InsertarSecEducacion_Departamental(
+    IN IID_Secretaria INT,
+    IN INombre VARCHAR(50),
+    IN IDireccion VARCHAR(50),
+    IN IEmail VARCHAR(50),
+    IN IID_Departamento INT
+)
+BEGIN
+    INSERT INTO SecEducacion_Departamental (ID_Secretaria, Nombre, Direccion, Email, ID_Departamento)
+    VALUES (IID_Secretaria, INombre, IDireccion, IEmail, IID_Departamento);
+END;
+DELIMITER ;
+
+-- Actualizar SecEducacion_Departamental
+DELIMITER //
+CREATE PROCEDURE ActualizarSecEducacion_Departamental(
+    IN IID_Secretaria INT,
+    IN NuevoNombre VARCHAR(50),
+    IN NuevaDireccion VARCHAR(50),
+    IN NuevoEmail VARCHAR(50),
+    IN NuevoID_Departamento INT
+)
+BEGIN
+    UPDATE SecEducacion_Departamental
+    SET Nombre = NuevoNombre,
+        Direccion = NuevaDireccion,
+        Email = NuevoEmail,
+        ID_Departamento = NuevoID_Departamento
+    WHERE ID_Secretaria = IID_Secretaria;
+END;
+DELIMITER ;
+
+
+-- Eliminar SecEducacion_Departamental
+DELIMITER //
+CREATE PROCEDURE EliminarSecEducacion_Departamental(
+    IN EID_Secretaria INT
+)
+BEGIN
+    DELETE FROM SecEducacion_Departamental
+    WHERE ID_Secretaria = EID_Secretaria;
+END;
+DELIMITER ;
+
+
+-- Seleccionar SecEducacion_Departamental
+DELIMITER //
+CREATE PROCEDURE SeleccionarSecEducacion_Departamental()
+BEGIN
+    SELECT * FROM SecEducacion_Departamental;
+END;
+DELIMITER ;
+
+
+-- (3) Procedimientos para la tabla DirSecretaria_Educacion
+-- Insertar DirSecretaria_Educacion
+DELIMITER //
+CREATE PROCEDURE InsertarDirSecretaria_Educacion(
+    IN IID_Director INT,
+    IN I_Nombre VARCHAR(20),
+    IN I_Apellido VARCHAR(20),
+    IN I_Genero VARCHAR(10),
+    IN I_Email VARCHAR(50),
+    IN I_Direccion VARCHAR(50),
+    IN IFecha_contratacion DATETIME,
+    IN IFecha_Nacimiento DATETIME,
+    IN IID_Secretaria INT
+)
+BEGIN
+    INSERT INTO DirSecretaria_Educacion (ID_Director, Nombre, Apellido, Genero, Email, Direccion, Fecha_contratación, Fecha_Nacimiento, ID_Secretaria)
+    VALUES (IID_Directorr, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_contratacion , IFecha_Nacimiento, IID_Secretaria);
+END;
+DELIMITER ;
+
+-- Actualizar DirSecretaria_Educacion
+DELIMITER //
+CREATE PROCEDURE ActualizarDirSecretaria_Educacion(
+    IN IID_Director INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoApellido VARCHAR(20),
+    IN NuevoGenero VARCHAR(10),
+    IN NuevoEmail VARCHAR(50),
+    IN NuevaDireccion VARCHAR(50),
+    IN NuevaFecha_contratacion DATETIME,
+    IN NuevaFecha_Nacimiento DATETIME,
+    IN NuevoID_Secretaria INT
+)
+BEGIN
+    UPDATE DirSecretaria_Educacion
+    SET Nombre = NuevoNombre,
+        Apellido = NuevoApellido,
+        Genero = NuevoGenero,
+        Email = NuevoEmail,
+        Direccion = NuevaDireccion,
+        Fecha_contratación = NuevaFecha_contratacion,
+        Fecha_Nacimiento = NuevaFecha_Nacimiento,
+        ID_Secretaria = NuevoID_Secretaria
+    WHERE ID_Director = IID_Director;
+END;
+DELIMITER ;
+
+-- Eliminar DirSecretaria_Educacion
+DELIMITER //
+CREATE PROCEDURE EliminarDirSecretaria_Educacion(
+    IN IID_Director INT
+)
+BEGIN
+    DELETE FROM DirSecretaria_Educacion
+    WHERE ID_Director = IID_Director;
+END;
+DELIMITER ;
+
+-- Seleccionar DirSecretaria_Educacion
+DELIMITER //
+CREATE PROCEDURE SeleccionarDirSecretaria_Educacion()
+BEGIN
+    SELECT * FROM DirSecretaria_Educacion;
+END;
+DELIMITER ;
+
+
+
+-- (4) Procedimientos para la tabla Regional
+-- Insertar Regional
+DELIMITER //
+CREATE PROCEDURE InsertarRegional(
+    IN IID_Regional INT,
+    IN I_Nombre VARCHAR(20),
+    IN IID_Secretaria INT
+)
+BEGIN
+    INSERT INTO Regional (ID_Regional, Nombre, ID_Secretaria)
+    VALUES (IID_Regional, I_Nombre, IID_Secretaria);
+END;
+DELIMITER ;
+
+-- Actualizar Regional
+DELIMITER //
+CREATE PROCEDURE ActualizarDirSecretaria_Educacion(
+    IN AID_Regional INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoID_Secretaria INT
+)
+BEGIN
+    UPDATE Regional
+    SET Nombre = NuevoNombre,
+        ID_Secretaria = NuevoID_Secretaria
+    WHERE ID_Regional = AID_Regional;
+END;
+DELIMITER ;
+
+
+-- Eliminar Regional
+DELIMITER //
+CREATE PROCEDURE EliminarRegional(
+    IN IID_Regional INT
+)
+BEGIN
+    DELETE FROMRegional
+    WHERE ID_Regional = IID_Regional;
+END;
+DELIMITER ;
+
+-- Seleccionar Regional
+DELIMITER //
+CREATE PROCEDURE SeleccionarRegional()
+BEGIN
+    SELECT * FROM Regional;
+END;
+DELIMITER ;
+
+
+-- (5) Procedimientos para la tabla DirRegional
+-- Insertar DirRegional
+DELIMITER //
+CREATE PROCEDURE InsertarDirRegional(
+    IN IID_DirRegional INT,
+    IN I_Nombre VARCHAR(20),
+    IN I_Apellido VARCHAR(20),
+    IN I_Genero VARCHAR(10),
+    IN I_Email VARCHAR(50),
+    IN I_Direccion VARCHAR(50),
+    IN IFecha_Contratacion DATETIME,
+    IN IFecha_Nacimiento DATETIME,
+    IN IID_Regional INT
+)
+BEGIN
+    INSERT INTO Dir_Regional (ID_DirRegional, Nombre, Apellido, Genero, Email, Direccion, Fecha_contratación, Fecha_Nacimiento, ID_Regional)
+    VALUES (IID_DirRegional, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_Contratacion, IFecha_Nacimiento, IID_Regional);
+END;
+DELIMITER ;
+
+-- Actualizar DirRegional
+DELIMITER //
+CREATE PROCEDURE ActualizarDirRegional(
+    IN AID_DirRegional INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoApellido VARCHAR(20),
+    IN NuevoGenero VARCHAR(10),
+    IN NuevoEmail VARCHAR(50),
+    IN NuevoDireccion VARCHAR(50),
+    IN NuevoFecha_Contratacion DATETIME,
+    IN NuevoFecha_Nacimiento DATETIME,
+    IN AID_Regional INT
+)
+BEGIN
+    UPDATE Dir_Regional
+    SET Nombre = NuevoNombre,
+        Apellido = NuevoApellido,
+        Genero = NuevoGenero,
+        Email = NuevoEmail,
+        Direccion = NuevoDireccion ,
+        Fecha_contratación = NuevoFecha_Contratacion,
+        Fecha_Nacimiento = NuevoFecha_Nacimiento,
+        ID_Regional = AID_Regional
+    WHERE ID_DirRegional = AID_DirRegional;
+END;
+DELIMITER ;
+
+
+-- Eliminar DirRegional
+DELIMITER //
+CREATE PROCEDURE EliminarDirRegional(
+    IN EID_DirRegional INT
+)
+BEGIN
+    DELETE FROM Dir_Regional
+    WHERE ID_DirRegional = EID_DirRegionall;
+END;
+DELIMITER ;
+
+-- Seleccionar DirRegional
+DELIMITER //
+CREATE PROCEDURE SeleccionarDirRegional()
+BEGIN
+    SELECT * FROM Dir_Regional;
+END;
+DELIMITER ;
+
+-- (6) Procedimientos para la tabla Ciudad
+-- Insertar Ciudad
 
 DELIMITER //
+CREATE PROCEDURE InsertarCiudad(
+    IN IID_Ciudad INT,
+    IN I_Nombre VARCHAR(50),
+    IN IID_Regional INT
+)
+BEGIN
+    INSERT INTO Ciudad (ID_Ciudad, Nombre, ID_Regional)
+    VALUES (IID_Ciudad, I_Nombre, IID_Regional);
+END;
+DELIMITER ;
 
-CREATE PROCEDURE DeleteDirector(
-    IN id_director INT
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarCiudad(
+    IN AID_Ciudad INT,
+    IN NuevoNombre VARCHAR(50),
+    IN AID_Regional INT
+)
+BEGIN
+    UPDATE Ciudad
+    SET Nombre = NuevoNombre,
+        ID_Regional = AID_Regional
+    WHERE ID_Ciudad = AID_Ciudad;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarCiudad(
+    IN EID_Ciudad INT
+)
+BEGIN
+    DELETE FROM Ciudad
+    WHERE ID_Ciudad = EID_Ciudad;
+END;
+DELIMITER ;
+
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarCiudad()
+BEGIN
+    SELECT * FROM Ciudad;
+END;
+DELIMITER ;
+
+
+-- (7) Procedimientos para la tabla Comuna
+-- Insertar Comuna
+
+DELIMITER //
+CREATE PROCEDURE InsertarComuna(
+    IN IID_Comuna INT,
+    IN I_Nombre VARCHAR(50),
+    IN I_ID_Ciudad INT
+)
+BEGIN
+    INSERT INTO Comuna (ID_Comuna, Nombre, ID_Ciudad)
+    VALUES (IID_Comuna, I_Nombre, I_ID_Ciudad);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarComuna(
+    IN AID_Comuna INT,
+    IN NuevoNombre VARCHAR(50),
+    IN AID_Ciudad INT
+)
+BEGIN
+    UPDATE Comuna
+    SET Nombre = NuevoNombre,
+        ID_Ciudad = AID_Ciudad
+    WHERE ID_Comuna = AID_Comuna;
+END;
+DELIMITER ;
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarComuna(
+    IN EID_Comuna INT
+)
+BEGIN
+    DELETE FROM Comuna
+    WHERE ID_Comuna = EID_Comuna;
+END;
+DELIMITER ;
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarComuna()
+BEGIN
+    SELECT * FROM Comuna;
+END;
+DELIMITER ;
+
+
+-- (8) Procedimientos para la tabla DirComuna
+-- Insertar DirComuna
+
+DELIMITER //
+CREATE PROCEDURE InsertarDirectorComuna(
+    IN IID_Director INT,
+    IN I_Nombre VARCHAR(20),
+    IN I_Apellido VARCHAR(20),
+    IN I_Genero VARCHAR(10),
+    IN I_Email VARCHAR(50),
+    IN I_Direccion VARCHAR(50),
+    IN IFecha_Contratacion DATETIME,
+    IN IFecha_Nacimiento DATETIME,
+    IN IID_Comuna INT
+)
+BEGIN
+    INSERT INTO Director_Comuna (ID_Director, Nombre, Apellido, Genero, Email, Direccion, Fecha_contratación, Fecha_Nacimiento, ID_Comuna)
+    VALUES (IID_Director, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_Contratacion, IFecha_Nacimiento, IID_Comuna);
+END;
+DELIMITER ;
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarDirectorComuna(
+    IN AID_Director INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoApellido VARCHAR(20),
+    IN NuevoGenero VARCHAR(10),
+    IN NuevoEmail VARCHAR(50),
+    IN NuevoDireccion VARCHAR(50),
+    IN NuevoFecha_Contratacion DATETIME,
+    IN NuevoFecha_Nacimiento DATETIME,
+    IN AID_Comuna INT
+)
+BEGIN
+    UPDATE Director_Comuna
+    SET Nombre = NuevoNombre,
+        Apellido = NuevoApellido,
+        Genero = NuevoGenero,
+        Email = NuevoEmail,
+        Direccion = NuevoDireccion,
+        Fecha_contratación = NuevoFecha_Contratacion,
+        Fecha_Nacimiento = NuevoFecha_Nacimiento,
+        ID_Comuna = AID_Comuna
+    WHERE ID_Director = AID_Director;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarDirectorComuna(
+    IN EID_Director INT
 )
 BEGIN
     DELETE FROM Director_Comuna
-    WHERE ID_Director = id_director;
-END //
-
+    WHERE ID_Director = EID_Director;
+END;
 DELIMITER ;
 
-// Este procedimiento devuelve el número de colegios por departamento
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarDirectorComuna()
+BEGIN
+    SELECT * FROM Director_Comuna;
+END;
+DELIMITER ;
+
+
+-- (9) Procedimientos para la tabla Colegio
+-- Insertar Colegio
 
 DELIMITER //
-
-CREATE PROCEDURE GetColegiosCountByDepartamento()
+CREATE PROCEDURE InsertarColegio(
+    IN IID_Colegio INT,
+    IN I_Nombre VARCHAR(50),
+    IN I_Direccion VARCHAR(50),
+    IN I_Telefono VARCHAR(20),
+    IN IID_Comuna INT
+)
 BEGIN
-    SELECT d.Nombre AS Departamento, COUNT(c.ID_Colegio) AS Total_Colegios
-    FROM Departamento d
-    LEFT JOIN Comuna cm ON cm.ID_Ciudad IN (SELECT ID_Ciudad FROM Ciudad WHERE ID_Regional IN (SELECT ID_Regional FROM Regional WHERE ID_Departamento = d.ID_Departamento))
-    LEFT JOIN Colegio c ON c.ID_Comuna = cm.ID_Comuna
-    GROUP BY d.ID_Departamento;
-END //
-
+    INSERT INTO Colegio (ID_Colegio, Nombre, Direccion, Telefono, ID_Comuna)
+    VALUES (IID_Colegioo, I_Nombre, I_Direccion, I_Telefono, IID_Comuna);
+END;
 DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarColegio(
+    IN AID_Colegio INT,
+    IN NuevoNombre VARCHAR(50),
+    IN NuevoDireccion VARCHAR(50),
+    IN NuevoTelefono VARCHAR(20),
+    IN AID_Comuna INT
+)
+BEGIN
+    UPDATE Colegio
+    SET Nombre = NuevoNombre,
+        Direccion = NuevoDireccion,
+        Telefono = NuevoTelefono,
+        ID_Comuna = AID_Comuna
+    WHERE ID_Colegio = AID_Colegio;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarColegio(
+    IN EID_Colegio INT
+)
+BEGIN
+    DELETE FROM Colegio
+    WHERE ID_Colegio = EID_Colegio;
+END;
+DELIMITER ;
+
+
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarColegio()
+BEGIN
+    SELECT * FROM Colegio;
+END;
+DELIMITER ;
+
+
+-- (10) Procedimientos para la tabla Rector
+-- Insertar Rector
+
+DELIMITER //
+CREATE PROCEDURE InsertarRector(
+    IN IID_Rector INT,
+    IN I_Nombre VARCHAR(20),
+    IN I_Apellido VARCHAR(20),
+    IN I_Genero VARCHAR(10),
+    IN I_Email VARCHAR(50),
+    IN I_Direccion VARCHAR(50),
+    IN IFecha_Contratacion DATETIME,
+    IN IFecha_Nacimiento DATETIME,
+    IN IID_Colegio INT
+)
+BEGIN
+    INSERT INTO Rector (ID_Rector, Nombre, Apellido, Genero, Email, Direccion, Fecha_contratación, Fecha_Nacimiento, ID_Colegio)
+    VALUES (IID_Rector, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_Contratacion, IFecha_Nacimiento, IID_Colegio);
+END;
+DELIMITER ;
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarRector(
+    IN AID_Rector INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoApellido VARCHAR(20),
+    IN NuevoGenero VARCHAR(10),
+    IN NuevoEmail VARCHAR(50),
+    IN NuevoDireccion VARCHAR(50),
+    IN NuevoFecha_Contratacion DATETIME,
+    IN NuevoFecha_Nacimiento DATETIME,
+    IN AID_Colegio INT
+)
+BEGIN
+    UPDATE Rector
+    SET Nombre = NuevoNombre,
+        Apellido = NuevoApellido,
+        Genero = NuevoGenero,
+        Email = NuevoEmail,
+        Direccion = NuevoDireccion,
+        Fecha_contratación = NuevoFecha_Contratacion,
+        Fecha_Nacimiento = NuevoFecha_Nacimiento,
+        ID_Colegio = AID_Colegio
+    WHERE ID_Rector = AID_Rector;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarRector(
+    IN EID_Rector INT
+)
+BEGIN
+    DELETE FROM Rector
+    WHERE ID_Rector = EID_Rector;
+END;
+DELIMITER ;
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarRector()
+BEGIN
+    SELECT * FROM Rector;
+END;
+DELIMITER ;
+
+
+-- (11)  Procedimientos para la tabla Secretaria_Colegio
+-- Insertar Secretaria
+DELIMITER //
+CREATE PROCEDURE InsertarSecretariaColegio(
+    IN IID_Secretaria INT,
+    IN I_Nombre VARCHAR(20),
+    IN I_Apellido VARCHAR(20),
+    IN I_Genero VARCHAR(10),
+    IN I_Email VARCHAR(50),
+    IN I_Direccion VARCHAR(50),
+    IN IFecha_Contratacion DATETIME,
+    IN IFecha_Nacimiento DATETIME,
+    IN IID_Colegio INT
+)
+BEGIN
+    INSERT INTO Secretaria_Colegio (ID_Secretaria, Nombre, Apellido, Genero, Email, Direccion, Fecha_contratación, Fecha_Nacimiento, ID_Colegio)
+    VALUES (IID_Secretaria, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_Contratacion, IFecha_Nacimiento, IID_Colegio);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarSecretariaColegio(
+    IN AID_Secretaria INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoApellido VARCHAR(20),
+    IN NuevoGenero VARCHAR(10),
+    IN NuevoEmail VARCHAR(50),
+    IN NuevoDireccion VARCHAR(50),
+    IN NuevoFecha_Contratacion DATETIME,
+    IN NuevoFecha_Nacimiento DATETIME,
+    IN AID_Colegio INT
+)
+BEGIN
+    UPDATE Secretaria_Colegio
+    SET Nombre = NuevoNombre,
+        Apellido = NuevoApellido,
+        Genero = NuevoGenero,
+        Email = NuevoEmail,
+        Direccion = NuevoDireccion,
+        Fecha_contratación = NuevoFecha_Contratacion,
+        Fecha_Nacimiento = NuevoFecha_Nacimiento,
+        ID_Colegio = AID_Colegio
+    WHERE ID_Secretaria = AID_Secretaria;
+END;
+DELIMITER ;
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarSecretariaColegio(
+    IN EID_Secretaria INT
+)
+BEGIN
+    DELETE FROM Secretaria_Colegio
+    WHERE ID_Secretaria = EID_Secretaria;
+END;
+DELIMITER ;
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarSecretariaColegio()
+BEGIN
+    SELECT * FROM Secretaria_Colegio;
+END;
+DELIMITER ;
+
+-- (12) Procedimientos para la tabla Profesor
+-- Insertar Profesor
+
+
+DELIMITER //
+CREATE PROCEDURE InsertarProfesor(
+    IN IID_Profesor INT,
+    IN I_Nombre VARCHAR(20),
+    IN I_Apellido VARCHAR(20),
+    IN I_Genero VARCHAR(10),
+    IN I_Email VARCHAR(50),
+    IN I_Direccion VARCHAR(50),
+    IN IFecha_Nacimiento DATETIME,
+    IN ITitulo VARCHAR(150),
+    IN IID_Colegio INT
+)
+BEGIN
+    INSERT INTO Profesor (ID_Profesor, Nombre, Apellido, Genero, Email, Direccion, Fecha_Nacimiento, Titulo, ID_Colegio)
+    VALUES (IID_Profesor, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_Nacimiento, ITitulo, IID_Colegio);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarProfesor(
+    IN AID_Profesor INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoApellido VARCHAR(20),
+    IN NuevoGenero VARCHAR(10),
+    IN NuevoEmail VARCHAR(50),
+    IN NuevoDireccion VARCHAR(50),
+    IN NuevoFecha_Nacimiento DATETIME,
+    IN NuevoTitulo VARCHAR(150),
+    IN AID_Colegio INT
+)
+BEGIN
+    UPDATE Profesor
+    SET Nombre = NuevoNombre,
+        Apellido = NuevoApellido,
+        Genero = NuevoGenero,
+        Email = NuevoEmail,
+        Direccion = NuevoDireccion,
+        Fecha_Nacimiento = NuevoFecha_Nacimiento,
+        Titulo = NuevoTitulo,
+        ID_Colegio = AID_Colegio
+    WHERE ID_Profesor = AID_Profesor;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarProfesor(
+    IN EID_Profesor INT
+)
+BEGIN
+    DELETE FROM Profesor
+    WHERE ID_Profesor = EID_Profesor;
+END;
+DELIMITER ;
+
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarProfesor()
+BEGIN
+    SELECT * FROM Profesor;
+END;
+DELIMITER ;
+
+
+-- (13) Procedimientos para la tabla Profesor-Colegio
+-- Insertar Profesor-Colegio
+
+-- Insertar
+DELIMITER //
+CREATE PROCEDURE InsertarProfesorColegio(
+    IN IID_Profesor INT,
+    IN IID_Colegio INT,
+    IN IFecha_Contratacion DATETIME
+)
+BEGIN
+    INSERT INTO Profesor_Colegio (ID_Profesor, ID_Colegio, Fecha_Contratacion)
+    VALUES (IID_Profesor, IID_Colegio, IFecha_Contratacion);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarProfesorColegio(
+    IN AID_Profesor INT,
+    IN AID_Colegio INT,
+    IN NuevoFecha_Contratacion DATETIME
+)
+BEGIN
+    UPDATE Profesor_Colegio
+    SET Fecha_Contratacion = NuevoFecha_Contratacion
+    WHERE ID_Profesor = AID_Profesor AND ID_Colegio = AID_Colegio ;
+END;
+DELIMITER ;
+
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarProfesorColegio(
+    IN EID_Profesor INT,
+    IN EID_Colegio INT
+)
+BEGIN
+    DELETE FROM Profesor_Colegio
+    WHERE ID_Profesor = EID_Profesor AND ID_Colegio = EID_Colegio;
+END;
+DELIMITER ;
+
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarProfesorColegio()
+BEGIN
+    SELECT * FROM Profesor_Colegio;
+END;
+DELIMITER ;
+
+
+
+-- (14) Procedimientos para la tabla Curso
+-- Insertar Curso
+
+
+-- Insertar
+DELIMITER //
+CREATE PROCEDURE InsertarCurso(
+    IN IID_Curso INT,
+    IN I_Nombre VARCHAR(50),
+    IN INum_Estudiantes INT,
+    IN IID_Colegio INT
+)
+BEGIN
+    INSERT INTO Curso (ID_Curso, Nombre, Num_Estudiantes, ID_Colegio)
+    VALUES (IID_Curso, I_Nombre, INum_Estudiantes, IID_Colegio);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarCurso(
+    IN AID_Curso INT,
+    IN NuevoNombre VARCHAR(50),
+    IN NuevoNum_Estudiantes INT,
+    IN AID_Colegio INT
+)
+BEGIN
+    UPDATE Curso
+    SET Nombre = NuevoNombre,
+        Num_Estudiantes = NuevoNum_Estudiantes,
+        ID_Colegio = AID_Colegio
+    WHERE ID_Curso = AID_Curso;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarCurso(
+    IN EID_Curso INT
+)
+BEGIN
+    DELETE FROM Curso
+    WHERE ID_Curso = EID_Curso;
+END;
+DELIMITER ;
+
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarCurso()
+BEGIN
+    SELECT * FROM Curso;
+END;
+DELIMITER ;
+
+
+
+-- (15) Procedimientos para la tabla Asignatura
+-- Insertar Asignatura
+
+-- Insertar
+DELIMITER //
+CREATE PROCEDURE InsertarAsignatura(
+    IN IID_Asignatura INT,
+    IN I_Nombre VARCHAR(50),
+    IN IID_Curso INT
+)
+BEGIN
+    INSERT INTO Asignatura (ID_Asignatura, Nombre, ID_Curso)
+    VALUES (IID_Asignatura, I_Nombre, IID_Curso);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarAsignatura(
+    IN AID_Asignatura INT,
+    IN I_Nombre VARCHAR(50),
+    IN AID_Curso INT
+)
+BEGIN
+    UPDATE Asignatura
+    SET Nombre = I_Nombre,
+        ID_Curso = AID_Curso
+    WHERE ID_Asignatura = AID_Asignatura;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarAsignatura(
+    IN EID_Asignatura INT
+)
+BEGIN
+    DELETE FROM Asignatura
+    WHERE ID_Asignatura = EID_Asignatura;
+END;
+DELIMITER ;
+
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarAsignatura()
+BEGIN
+    SELECT * FROM Asignatura;
+END;
+DELIMITER ;
+
+
+-- (16)  Procedimientos para la tabla Profesor-Asignatura
+-- Insertar Profesor-Asignatura
+
+-- Insertar
+DELIMITER //
+CREATE PROCEDURE InsertarProfesorAsignatura(
+    IN IID_Profesor INT,
+    IN IID_Asignatura INT,
+    IN IFecha_Contratacion DATETIME
+)
+BEGIN
+    INSERT INTO Profesor_Asignatura (ID_Profesor, ID_Asignatura, Fecha_Contratacion)
+    VALUES (ID_Profesor, IID_Asignatura, IFecha_Contratacion);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarProfesorAsignatura(
+    IN AID_Profesor INT,
+    IN AID_Asignatura INT,
+    IN NuevoFecha_Contratacion DATETIME
+)
+BEGIN
+    UPDATE Profesor_Asignatura
+    SET Fecha_Contratacion = NuevoFecha_Contratacion
+    WHERE ID_Profesor = AID_Profesor AND ID_Asignatura = AID_Asignatura;
+END;
+DELIMITER ;
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarProfesorAsignatura(
+    IN EID_Profesor INT,
+    IN EID_Asignatura INT
+)
+BEGIN
+    DELETE FROM Profesor_Asignatura
+    WHERE ID_Profesor = EID_Profesor AND ID_Asignatura = EID_Asignatura;
+END;
+DELIMITER ;
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarProfesorAsignatura()
+BEGIN
+    SELECT * FROM Profesor_Asignatura;
+END;
+DELIMITER ;
+
+
+-- (17) Procedimientos para la tabla Estudiante
+-- Insertar Estudiante
+
+-- Insertar
+DELIMITER //
+CREATE PROCEDURE InsertarEstudiante(
+    IN IID_Estudiante INT,
+    IN I_Nombre VARCHAR(20),
+    IN I_Apellido VARCHAR(20),
+    IN IFecha_Nacimiento DATETIME,
+    IN IID_Colegio INT
+)
+BEGIN
+    INSERT INTO Estudiante (ID_Estudiante, Nombre, Apellido, Fecha_Nacimiento, ID_Colegio)
+    VALUES (IID_Estudiante, I_Nombre, I_Apellido, IFecha_Nacimiento, IID_Colegio);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarEstudiante(
+    IN AID_Estudiante INT,
+    IN NuevoNombre VARCHAR(20),
+    IN NuevoApellido VARCHAR(20),
+    IN NuevoFecha_Nacimiento DATETIME,
+    IN AID_Colegio INT
+)
+BEGIN
+    UPDATE Estudiante
+    SET Nombre = NuevoNombre,
+        Apellido = NuevoApellido,
+        Fecha_Nacimiento = NuevoFecha_Nacimiento,
+        ID_Colegio = AID_Colegio
+    WHERE ID_Estudiante = AID_Estudiante;
+END;
+DELIMITER ;
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarEstudiante(
+    IN EID_Estudiante INT
+)
+BEGIN
+    DELETE FROM Estudiante
+    WHERE ID_Estudiante = EID_Estudiante;
+END;
+DELIMITER ;
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarEstudiante()
+BEGIN
+    SELECT * FROM Estudiante;
+END;
+DELIMITER ;
+
+
+
+-- (18) Procedimientos para la tabla Estudiante- Asignatura
+-- Insertar Estudiante- Asignatura
+
+DELIMITER //
+CREATE PROCEDURE InsertarEstudianteAsignatura(
+    IN IID_Estudiante INT,
+    IN IID_Asignatura INT,
+    IN IFecha_matricula DATETIME
+)
+BEGIN
+    INSERT INTO Estudiante_Asignatura (ID_Estudiante, ID_Asignatura, Fecha_matricula)
+    VALUES (IID_Estudiante, IID_Asignatura, IFecha_matricula);
+END;
+DELIMITER ;
+
+
+-- Actualizar
+DELIMITER //
+CREATE PROCEDURE ActualizarEstudianteAsignatura(
+    IN AID_Estudiante INT,
+    IN AID_Asignatura INT,
+    IN NuevoFecha_matricula DATETIME
+)
+BEGIN
+    UPDATE Estudiante_Asignatura
+    SET Fecha_matricula = NuevoFecha_matricula
+    WHERE ID_Estudiante = AID_Estudiante AND ID_Asignatura = AID_Asignatura;
+END;
+DELIMITER ;
+
+
+
+-- Eliminar
+DELIMITER //
+CREATE PROCEDURE EliminarEstudianteAsignatura(
+    IN EID_Estudiante INT,
+    IN EID_Asignatura INT
+)
+BEGIN
+    DELETE FROM Estudiante_Asignatura
+    WHERE ID_Estudiante = EID_Estudiante AND ID_Asignatura = EID_Asignatura;
+END;
+DELIMITER ;
+
+
+-- Seleccionar
+DELIMITER //
+CREATE PROCEDURE SeleccionarEstudianteAsignatura()
+BEGIN
+    SELECT * FROM Estudiante_Asignatura;
+END;
+DELIMITER ;
+
+
+
+
+
+
+
+
