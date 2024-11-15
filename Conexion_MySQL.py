@@ -5,20 +5,21 @@ import datetime
 app = flask.Flask(__name__)
 
 class Departamento:
-    id_departamento: int = 0
-    nombre: str = None
-    
-def GetId(self) -> int:
-        return self.id_departamento
-    
-def SetId(self, value: int) -> None:
-        self.id_departamento = value
-    
-def GetNombre(self) -> str:
-        return self.nombre
-    
-def SetNombre(self, value: str) -> None:
-        self.nombre = value
+    def __init__(self):
+        self.ID_Departamento = 0  # Valor inicial de ID
+        self.Nombre = None  # Valor inicial de Nombre
+
+    def GetId(self) -> int:
+        return self.ID_Departamento
+
+    def SetId(self, value: int) -> None:
+        self.ID_Departamento = value
+
+    def GetNombre(self) -> str:
+        return self.Nombre
+
+    def SetNombre(self, value: str) -> None:
+        self.Nombre = value
 
 class Colegio:
     id_colegio: int = 0
@@ -676,6 +677,7 @@ class Estudiante:
         return self._Asignatura
     def SetAsignatura(self, value: Asignatura) -> None:
         self._Asignatura = value 
+        
 class Conexion:
     strConnection: str = """
         Driver={MySQL ODBC 9.0 Unicode Driver};
@@ -684,124 +686,71 @@ class Conexion:
         PORT=3306;
         user=user_colegios;
         password=Colegios2024"""
-
-    def ConexionDirectoresBySecretarias(self) -> None:
+         
+    #Call proc Table Departamento 
+    #Llamando al procedimiento almacenado que consulta la tabla departamento
+    def SeleccionarDepartamento(self) -> None:
         conexion = pyodbc.connect(self.strConnection)
-        consulta: str = "{CALL proc_select_dir_secretarias()}"  
+        consulta: str = "{CALL SeleccionarDepartamento()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
-
-        lista_directores = []  
+  
+        Datos_Departamento = []  
         for elemento in cursor:
-        
-            director = Director()
-            director.SetId(elemento[0])  
-            director.SetNombre(elemento[1]) 
-            director.SetApellido(elemento[2])  
+            depto = Departamento()
+            depto.SetId(elemento[0])
+            depto.SetNombre(elemento[1])
+            Datos_Departamento.append(depto)
             
-            secretaria = SecretariaEducacion()
-            secretaria.SetNombre(elemento[3])  
-            departamento = Departamento()
-            departamento.SetNombre(elemento[4])  
-            
-            lista_directores.append(director)
-
         cursor.close()
         conexion.close()
 
-        
-        for director in lista_directores:
-            print(f"Director: {director.GetId()} - {director.GetNombre()} {director.GetApellido()}")
-            print(f"  Secretaria: {secretaria.GetNombre()}")  
-            print(f"  Departamento: {departamento.GetNombre()}")  
-    
-    
-    def ConexionDirectoresByDepartamento(self, departamento_id: int) -> None:
-        conexion = pyodbc.connect(self.strConnection)
-        consulta: str = "{CALL GetDirectoresByDepartamento(?)}"
-        cursor = conexion.cursor()
-        cursor.execute(consulta, (departamento_id,))
-
-        lista: list = []
-        for elemento in cursor:
-            director = Director()
-            director.SetId(elemento[0])
-            director.SetNombre(elemento[1])
-            director.SetApellido(elemento[2])
-            director.SetEmail(elemento[3])
-            lista.append(director)
-
-        cursor.close()
-        conexion.close()
-
-        for director in lista:
-            print(f"{director.GetId()} - {director.GetNombre()} {director.GetApellido()} - {director.GetEmail()}")
-    
-    def ConexionInsertarColegio(self, id_colegio: int, nombre: str, direccion: str, telefono: str, id_comuna: int) -> None:
+        for depto in Datos_Departamento:
+            print(f"  Departamento: {depto.GetId()} - {depto.GetNombre()}") 
+          
+    #Llamando al procedimiento almacenado que inserta datos en la tabla departamento       
+    def Insertar_Departamento(self, ID_Departamento: int, Nombre: str) -> None:
         try:
             conexion = pyodbc.connect(self.strConnection)
-            consulta: str = "{CALL InsertColegio2(?, ?, ?, ?, ?)}"
             cursor = conexion.cursor()
-            cursor.execute(consulta, (id_colegio, nombre, direccion, telefono, id_comuna))
-
+            print(f"ID_Departamento: {ID_Departamento}, Nombre: '{Nombre}'")  
+            cursor.execute("CALL InsertarDepartamento(?, ?)", (ID_Departamento, Nombre))
             conexion.commit()  
             cursor.close()
             conexion.close()
-
-            print(f"Colegio '{nombre}' insertado correctamente con ID {id_colegio}.")
+            print(f"Departamento '{Nombre}' insertado correctamente con ID {ID_Departamento}.")
         except pyodbc.Error as e:
-            print(f"Error al insertar el colegio: {e}")
-        
-    def ConexionActualizarColegio(self, id_colegio_py: int, nueva_direccion: str, nuevo_telefono: str) -> None:
-        conexion = pyodbc.connect(self.strConnection)
-        consulta: str = "{CALL UpdateColegio(?, ?, ?)}"
-        cursor = conexion.cursor()
-        cursor.execute(consulta, (id_colegio_py, nueva_direccion, nuevo_telefono))
-        
-        conexion.commit()  
-        cursor.close()
-        conexion.close()    
-        
-        print(f"Colegio con ID {id_colegio_py} actualizado correctamente.")
-
-    def ConexionEliminarDirector(self, id_director: int) -> None:
-        conexion = pyodbc.connect(self.strConnection)
-        consulta: str = "{CALL DeleteDirector(?)}"
-        cursor = conexion.cursor()
-        cursor.execute(consulta, (id_director,))
-        
-        conexion.commit() 
-        cursor.close()
-        conexion.close()
-        
-        print(f"Director con ID {id_director} eliminado correctamente.")
-        
-    def ConexionColegiosCountByDepartamento(self) -> None:
-        conexion = pyodbc.connect(self.strConnection)
-        consulta: str = "{CALL GetColegiosCountByDepartamento()}"
-        cursor = conexion.cursor()
-        cursor.execute(consulta)
-
-        lista: list = []
-        for elemento in cursor:
-            departamento = Departamento()
-            departamento.SetId(elemento[0])
-            conteo_colegios = elemento[1]
-            lista.append((departamento, conteo_colegios))
-
-        cursor.close()
-        conexion.close()
-
-        for departamento, conteo in lista:
-            print(f"Departamento {departamento.GetId()} tiene {conteo} colegios.")
-
-print("Hola Jhony")
-        
-        
+            print(f"Error al insertar el Departamento: {e}")
+            
+    #Llamando al procedimiento almacenado que Elimina datos en la tabla departamento   
+    def Eliminar_Departamento(self, ID_Departamento: int) -> None:
+        try:    
+            conexion = pyodbc.connect(self.strConnection)
+            cursor = conexion.cursor()
+            cursor.execute("CALL EliminarDepartamento(?)", (ID_Departamento))
+            conexion.commit()  
+            cursor.close()
+            conexion.close()
+            print(f"Departamento con ID {ID_Departamento} eliminado correctamente.")
+        except pyodbc.Error as e:
+            print(f"Error al eliminar el departamento: {e}")
+            
+    #Llamando al procedimiento almacenado que actualiza datos en la tabla departamento   
+    def Actualizar_Departamento(self, ID_Departamento: int, NuevoNombre: str) -> None:
+        try: 
+            conexion = pyodbc.connect(self.strConnection)
+            cursor = conexion.cursor()
+            cursor.execute("CALL ActualizarDepartamento(?, ?)", (ID_Departamento, NuevoNombre))
+            conexion.commit()  
+            cursor.close()
+            conexion.close()   
+            print(f"Departamento con ID {ID_Departamento} actualizado correctamente.")
+        except pyodbc.Error as e:
+            print(f"Error al actualizar el departamento: {e}")
+                  
 conexion: Conexion = Conexion()
-#conexion.ConexionDirectoresBySecretarias()
-#conexion.ConexionDirectoresByDepartamento(1)
-conexion.ConexionInsertarColegio(102, 'Colegio Nuevo2', 'Calle 321', '123456312', 2)
-#conexion.ConexionActualizarColegio(2, 'Nueva Calle 923923', '125232')
-
+#conexion.SeleccionarDepartamento()
+#conexion.Eliminar_Departamento(1)
+conexion.Insertar_Departamento(7, 'Tolima')
+#conexion.Actualizar_Departamento(2, 'Guajira')
 
