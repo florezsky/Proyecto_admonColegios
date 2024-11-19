@@ -2,6 +2,17 @@ CREATE USER 'user_colegios'@'localhost' IDENTIFIED BY 'Colegios2024';
 GRANT CREATE, INSERT, UPDATE, DELETE, SELECT, EXECUTE ON db_colegios.* TO 'user_colegios'@'localhost';
 CREATE DATABASE db_colegios;
 
+
+--Elimina los permisos, usuario y base de datos--
+
+--REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'user_colegios'@'localhost';
+--DROP DATABASE db_colegios;
+--DROP USER 'user_colegios'@'localhost';
+
+
+--Código para verificar si un procedimiento almacenado específico ya está en la DB
+--SELECT ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINESWHERE ROUTINE_SCHEMA = 'mi_base'AND ROUTINE_TYPE = 'PROCEDURE'AND ROUTINE_NAME = 'mi_procedimiento';
+
 USE db_colegios;
 
 CREATE TABLE Departamento (
@@ -334,6 +345,7 @@ INSERT INTO Estudiante_Asignatura (ID_Estudiante, ID_Asignatura, Fecha_matricula
 
 
 -- (1)  Procedimientos para la tabla Departamento
+
 -- Insertar Departamento
 DELIMITER //
 CREATE PROCEDURE InsertarDepartamento(
@@ -347,8 +359,7 @@ END //
 
 DELIMITER ;
 
-
--- Actualizar Departamento
+-- -- Actualizar Departamento
 DELIMITER //
 CREATE PROCEDURE ActualizarDepartamento(
     IN AID_Departamento INT,
@@ -361,7 +372,6 @@ BEGIN
 END//
 
 DELIMITER ;
-
 
 -- Eliminar Departamento
 DELIMITER //
@@ -382,12 +392,12 @@ BEGIN
     SELECT * FROM Departamento;
 END;
 //
+
 DELIMITER ;
 
 
-SHOW PROCEDURE STATUS WHERE Db = 'db_colegios' AND Name = 'SeleccionarDepartamento';
-SELECT * FROM Departamento;
 -- (2) Procedimientos para la tabla SecEducacion_Departamental
+
 -- Insertar SecEducacion_Departamental
 DELIMITER //
 CREATE PROCEDURE InsertarSecEducacion_Departamental(
@@ -400,7 +410,8 @@ CREATE PROCEDURE InsertarSecEducacion_Departamental(
 BEGIN
     INSERT INTO SecEducacion_Departamental (ID_Secretaria, Nombre, Direccion, Email, ID_Departamento)
     VALUES (IID_Secretaria, INombre, IDireccion, IEmail, IID_Departamento);
-END;
+END;//
+
 DELIMITER ;
 
 -- Actualizar SecEducacion_Departamental
@@ -419,9 +430,9 @@ BEGIN
         Email = NuevoEmail,
         ID_Departamento = NuevoID_Departamento
     WHERE ID_Secretaria = IID_Secretaria;
-END;
-DELIMITER ;
+END;//
 
+DELIMITER ;
 
 -- Eliminar SecEducacion_Departamental
 DELIMITER //
@@ -431,9 +442,8 @@ CREATE PROCEDURE EliminarSecEducacion_Departamental(
 BEGIN
     DELETE FROM SecEducacion_Departamental
     WHERE ID_Secretaria = EID_Secretaria;
-END;
+END;//
 DELIMITER ;
-
 
 -- Seleccionar SecEducacion_Departamental
 DELIMITER //
@@ -446,6 +456,7 @@ DELIMITER ;
 
 
 -- (3) Procedimientos para la tabla DirSecretaria_Educacion
+
 -- Insertar DirSecretaria_Educacion
 DELIMITER //
 CREATE PROCEDURE InsertarDirSecretaria_Educacion(
@@ -461,7 +472,7 @@ CREATE PROCEDURE InsertarDirSecretaria_Educacion(
 )
 BEGIN
     INSERT INTO DirSecretaria_Educacion (ID_Director, Nombre, Apellido, Genero, Email, Direccion, Fecha_contratación, Fecha_Nacimiento, ID_Secretaria)
-    VALUES (IID_Directorr, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_contratacion , IFecha_Nacimiento, IID_Secretaria);
+    VALUES (IID_Director, I_Nombre, I_Apellido, I_Genero, I_Email, I_Direccion, IFecha_contratacion , IFecha_Nacimiento, IID_Secretaria);
 END;//
 
 DELIMITER ;
@@ -516,8 +527,8 @@ END;//
 DELIMITER ;
 
 
-
 -- (4) Procedimientos para la tabla Regional
+
 -- Insertar Regional
 DELIMITER //
 CREATE PROCEDURE InsertarRegional(
@@ -534,7 +545,7 @@ DELIMITER ;
 
 -- Actualizar Regional
 DELIMITER //
-CREATE PROCEDURE ActualizarDirSecretaria_Educacion(
+CREATE PROCEDURE ActualizarRegional(
     IN AID_Regional INT,
     IN NuevoNombre VARCHAR(20),
     IN NuevoID_Secretaria INT
@@ -546,8 +557,7 @@ BEGIN
     WHERE ID_Regional = AID_Regional;
 END;//
 
-DELIMITER;
-
+DELIMITER ;
 
 -- Eliminar Regional
 DELIMITER //
@@ -572,6 +582,7 @@ DELIMITER ;
 
 
 -- (5) Procedimientos para la tabla DirRegional
+
 -- Insertar DirRegional
 DELIMITER //
 CREATE PROCEDURE InsertarDirRegional(
@@ -628,7 +639,7 @@ CREATE PROCEDURE EliminarDirRegional(
 )
 BEGIN
     DELETE FROM Dir_Regional
-    WHERE ID_DirRegional = EID_DirRegionall;
+    WHERE ID_DirRegional = EID_DirRegional;
 END;//
 
 DELIMITER ;
@@ -643,8 +654,8 @@ END;//
 DELIMITER ;
 
 -- (6) Procedimientos para la tabla Ciudad
--- Insertar Ciudad
 
+-- Insertar Ciudad
 DELIMITER //
 CREATE PROCEDURE InsertarCiudad(
     IN IID_Ciudad INT,
@@ -674,7 +685,6 @@ END;//
 
 DELIMITER ;
 
-
 -- Eliminar
 DELIMITER //
 CREATE PROCEDURE EliminarCiudad(
@@ -686,7 +696,6 @@ BEGIN
 END;//
 
 DELIMITER ;
-
 
 -- Seleccionar
 DELIMITER //
@@ -713,7 +722,6 @@ BEGIN
 END;//
 
 DELIMITER ;
-
 
 -- Actualizar
 DELIMITER //
@@ -828,8 +836,8 @@ DELIMITER ;
 
 
 -- (9) Procedimientos para la tabla Colegio
--- Insertar Colegio
 
+-- Insertar Colegio
 DELIMITER //
 CREATE PROCEDURE InsertarColegio(
     IN IID_Colegio INT,
@@ -840,11 +848,10 @@ CREATE PROCEDURE InsertarColegio(
 )
 BEGIN
     INSERT INTO Colegio (ID_Colegio, Nombre, Direccion, Telefono, ID_Comuna)
-    VALUES (IID_Colegioo, I_Nombre, I_Direccion, I_Telefono, IID_Comuna);
+    VALUES (IID_Colegio, I_Nombre, I_Direccion, I_Telefono, IID_Comuna);
 END;//
 
 DELIMITER ;
-
 
 -- Actualizar
 DELIMITER //
@@ -1036,9 +1043,8 @@ END;//
 DELIMITER ;
 
 -- (12) Procedimientos para la tabla Profesor
+
 -- Insertar Profesor
-
-
 DELIMITER //
 CREATE PROCEDURE InsertarProfesor(
     IN IID_Profesor INT,
@@ -1144,8 +1150,6 @@ END;//
 
 DELIMITER ;
 
-
-
 -- Eliminar
 DELIMITER //
 CREATE PROCEDURE EliminarProfesorColegio(
@@ -1169,13 +1173,9 @@ END;//
 
 DELIMITER ;
 
-
-
 -- (14) Procedimientos para la tabla Curso
+
 -- Insertar Curso
-
-
--- Insertar
 DELIMITER //
 CREATE PROCEDURE InsertarCurso(
     IN IID_Curso INT,
@@ -1189,7 +1189,6 @@ BEGIN
 END;//
 
 DELIMITER ;
-
 
 -- Actualizar
 DELIMITER //
@@ -1232,12 +1231,9 @@ END;//
 
 DELIMITER ;
 
-
-
 -- (15) Procedimientos para la tabla Asignatura
--- Insertar Asignatura
 
--- Insertar
+-- Insertar Asignatura
 DELIMITER //
 CREATE PROCEDURE InsertarAsignatura(
     IN IID_Asignatura INT,
@@ -1250,7 +1246,6 @@ BEGIN
 END;//
 
 DELIMITER ;
-
 
 -- Actualizar
 DELIMITER //
@@ -1281,7 +1276,6 @@ END;//
 
 DELIMITER ;
 
-
 -- Seleccionar
 DELIMITER //
 CREATE PROCEDURE SeleccionarAsignatura()
@@ -1293,9 +1287,8 @@ DELIMITER ;
 
 
 -- (16)  Procedimientos para la tabla Profesor-Asignatura
--- Insertar Profesor-Asignatura
 
--- Insertar
+-- Insertar Profesor-Asignatura
 DELIMITER //
 CREATE PROCEDURE InsertarProfesorAsignatura(
     IN IID_Profesor INT,
@@ -1308,7 +1301,6 @@ BEGIN
 END;//
 
 DELIMITER ;
-
 
 -- Actualizar
 DELIMITER //
@@ -1324,7 +1316,6 @@ BEGIN
 END;//
 
 DELIMITER ;
-
 
 -- Eliminar
 DELIMITER //
@@ -1348,11 +1339,9 @@ END;//
 
 DELIMITER ;
 
-
 -- (17) Procedimientos para la tabla Estudiante
--- Insertar Estudiante
 
--- Insertar
+-- Insertar Estudiante
 DELIMITER //
 CREATE PROCEDURE InsertarEstudiante(
     IN IID_Estudiante INT,
@@ -1410,11 +1399,9 @@ END;//
 
 DELIMITER ;
 
-
-
 -- (18) Procedimientos para la tabla Estudiante- Asignatura
--- Insertar Estudiante- Asignatura
 
+-- Insertar Estudiante- Asignatura
 DELIMITER //
 CREATE PROCEDURE InsertarEstudianteAsignatura(
     IN IID_Estudiante INT,
@@ -1427,7 +1414,6 @@ BEGIN
 END;//
 
 DELIMITER ;
-
 
 -- Actualizar
 DELIMITER //
@@ -1444,8 +1430,6 @@ END;//
 
 DELIMITER ;
 
-
-
 -- Eliminar
 DELIMITER //
 CREATE PROCEDURE EliminarEstudianteAsignatura(
@@ -1459,7 +1443,6 @@ END;//
 
 DELIMITER ;
 
-
 -- Seleccionar
 DELIMITER //
 CREATE PROCEDURE SeleccionarEstudianteAsignatura()
@@ -1468,6 +1451,7 @@ BEGIN
 END;//
 
 DELIMITER ;
+
 
 
 
