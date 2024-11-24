@@ -1,28 +1,17 @@
-import pyodbc
-import datetime
-from Aplicacion.Aplicacion_admon import Departamento
-from Aplicacion.Aplicacion_admon import Colegio
-from Aplicacion.Aplicacion_admon import Rector
-from Aplicacion.Aplicacion_admon import SecEducacion_Departamental
-from Aplicacion.Aplicacion_admon import Comuna
-from Aplicacion.Aplicacion_admon import DirSecretaria_Educacion
-from Aplicacion.Aplicacion_admon import Regional
-from Aplicacion.Aplicacion_admon import Dir_Regional
-from Aplicacion.Aplicacion_admon import Ciudad
-from Aplicacion.Aplicacion_admon import Director_Comuna
-from Aplicacion.Aplicacion_admon import Secretaria_Colegio
-from Aplicacion.Aplicacion_admon import Profesor
-from Aplicacion.Aplicacion_admon import Profesor_Colegio
-from Aplicacion.Aplicacion_admon import Curso
-from Aplicacion.Aplicacion_admon import Asignatura
-from Aplicacion.Aplicacion_admon import Profesor_Asignatura
-from Aplicacion.Aplicacion_admon import Estudiante
-from Aplicacion.Aplicacion_admon import Estudiante_Asignatura
+import pyodbc;
+import datetime;
+from Aplicacion.Aplicacion_admon import (
+    Departamento, Colegio, Rector, SecEducacion_Departamental, Comuna,
+    DirSecretaria_Educacion, Regional, Dir_Regional, Ciudad, Director_Comuna,
+    Secretaria_Colegio, Profesor, Profesor_Colegio, Curso, Asignatura,
+    Profesor_Asignatura, Estudiante, Estudiante_Asignatura
+)
+
 
 #conexión a la base de datos      
 class Conexion:
     strConnection: str = """
-        Driver={MySQL ODBC 9.1 Unicode Driver};
+        Driver={MySQL ODBC 9.0 Unicode Driver};
         Server=localhost;
         Database=db_colegios;
         PORT=3306;
@@ -1224,7 +1213,6 @@ conexion: Conexion = Conexion()
 
 #2) ----Invocando Funciones SecEducacion_Departamental
 
-conexion.Seleccionar_SecEducacion_Departamental()
 #conexion.Insertar_SecEducacion_Departamental( 7, 'Secretaría Tunja','calle 27 # 16 - 25', 'secTunja@gmail.com', 7)
 #conexion.Eliminar_SecEducacion_Departamental(3)
 #conexion.Actualizar_SecEducacion_Departamental(4, 'Secreatria Chocó', 'calle 72 # 87 - 58', 'secChoco@gmail.com', 4)
