@@ -10,7 +10,7 @@ def SeleccionarDepar(entrada: str) -> str :
     Lista_Departamento  = {};
     try:
         conexion: Conexion = Conexion();
-        Lista_Departamento ["Entidades"] = conexion.SeleccionarDepartamento();
+        Lista_Departamento ["Departamentos"] = conexion.SeleccionarDepartamento();
         Lista_Departamento ["Response"] = "Ok";
         return flask.jsonify(Lista_Departamento );
     except:
