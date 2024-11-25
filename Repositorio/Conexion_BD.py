@@ -45,46 +45,78 @@ class Conexion:
         return Lista_Departamento;
   
     #Llamando al procedimiento almacenado que inserta datos en la tabla departamento       
-    def Insertar_Departamento(self, ID_Departamento: int, Nombre: str) -> None:
+    def Insertar_Departamento(self, id_departamento: int, nombre: str) -> None:
+        conexion = pyodbc.connect(self.strConnection)
+        cursor = conexion.cursor()
+
         try:
-            conexion = pyodbc.connect(self.strConnection)
-            cursor = conexion.cursor()
-            print(f"ID_Departamento: {ID_Departamento}, Nombre: '{Nombre}'")  
-            cursor.execute("CALL InsertarDepartamento(?, ?)", (ID_Departamento, Nombre))
-            conexion.commit()  
+            # Llamada al procedimiento almacenado con los parámetros
+            cursor.execute("CALL InsertarDepartamento(?, ?)", (id_departamento, nombre))
+            conexion.commit()
+
+            print(f"Departamento Insertado: ID={id_departamento}, Nombre='{nombre}'")
+        except Exception as e:
+            print("Error al insertar departamento:", str(e))
+            conexion.rollback()
+            raise
+        finally:
             cursor.close()
             conexion.close()
-            print(f"Departamento '{Nombre}' insertado correctamente con ID {ID_Departamento}.")
-        except pyodbc.Error as e:
-            print(f"Error al insertar el Departamento: {e}")
-            
-            
-    #Llamando al procedimiento almacenado que Elimina datos en la tabla departamento   
-    def Eliminar_Departamento(self, ID_Departamento: int) -> None:
-        try:    
-            conexion = pyodbc.connect(self.strConnection)
-            cursor = conexion.cursor()
-            cursor.execute("CALL EliminarDepartamento(?)", (ID_Departamento))
-            conexion.commit()  
+                 
+    #Llamando al procedimiento almacenado que Elimina datos en la tabla departamento         
+    def Eliminar_Departamento(self, ID_Departamento: int) -> dict:
+        conexion = pyodbc.connect(self.strConnection)
+        cursor = conexion.cursor()
+        respuesta = {}
+        try:
+            # Llamada al procedimiento almacenado
+            cursor.execute("{CALL EliminarDepartamento(?)}", (ID_Departamento,))
+            conexion.commit()
+
+            # Verificar si se eliminó
+            if cursor.rowcount > 0:
+                respuesta["Response"] = "Ok"
+                respuesta["Mensaje"] = "Especie eliminada exitosamente."
+            else:
+                respuesta["Response"] = "Error"
+                respuesta["Mensaje"] = "No se encontró la especie con el ID proporcionado."
+
+        except Exception as e:
+            respuesta["Response"] = "Error"
+            respuesta["Mensaje"] = str(e)
+        finally:
             cursor.close()
             conexion.close()
-            print(f"Departamento con ID {ID_Departamento} eliminado correctamente.")
-        except pyodbc.Error as e:
-            print(f"Error al eliminar el departamento: {e}")
+
+        return respuesta
             
             
     #Llamando al procedimiento almacenado que actualiza datos en la tabla departamento   
-    def Actualizar_Departamento(self, ID_Departamento: int, NuevoNombre: str) -> None:
-        try: 
-            conexion = pyodbc.connect(self.strConnection)
-            cursor = conexion.cursor()
-            cursor.execute("CALL ActualizarDepartamento(?, ?)", (ID_Departamento, NuevoNombre))
-            conexion.commit()  
+    def Actualizar_Departamento(self, ID_Departamento: int, nombre: str) -> dict:
+        conexion = pyodbc.connect(self.strConnection)
+        cursor = conexion.cursor()
+        respuesta = {}
+        try:
+            # Llamada al procedimiento almacenado
+            cursor.execute("{CALL ActualizarDepartamento(?, ?)}",(ID_Departamento, nombre))
+            conexion.commit()
+
+            # Verificar si se actualizó
+            if cursor.rowcount > 0:
+                respuesta["Response"] = "Ok"
+                respuesta["Mensaje"] = "Especie actualizada exitosamente."
+            else:
+                respuesta["Response"] = "Error"
+                respuesta["Mensaje"] = "No se encontró la especie con el ID proporcionado."
+
+        except Exception as e:
+            respuesta["Response"] = "Error"
+            respuesta["Mensaje"] = str(e)
+        finally:
             cursor.close()
-            conexion.close()   
-            print(f"Departamento con ID {ID_Departamento} actualizado correctamente.")
-        except pyodbc.Error as e:
-            print(f"Error al actualizar el departamento: {e}")
+            conexion.close()
+
+        return respuesta
             
             
     #2). Call proc Table SecEducacion_Departamental
