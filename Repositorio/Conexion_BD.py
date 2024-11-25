@@ -11,7 +11,7 @@ from Aplicacion.Aplicacion_admon import (
 #conexión a la base de datos      
 class Conexion:
     strConnection: str = """
-        Driver={MySQL ODBC 9.0 Unicode Driver};
+        Driver={MySQL ODBC 9.1 Unicode Driver};
         Server=localhost;
         Database=db_colegios;
         PORT=3306;
@@ -20,7 +20,7 @@ class Conexion:
         
     #1). Call proc Table Departamento 
     #Llamando al procedimiento almacenado que consulta la tabla departamento
-    def SeleccionarDepartamento(self) -> None:
+    def SeleccionarDepartamento(self) -> dict:
         conexion = pyodbc.connect(self.strConnection, autocommit=True)
         consulta: str = "{CALL SeleccionarDepartamento()}"  
         cursor = conexion.cursor()
@@ -31,8 +31,12 @@ class Conexion:
         contador = 0;
         for elemento in cursor:
             temporal: dict = {};
-            temporal["Id"] = elemento[0]
-            temporal["Nombre"] = elemento[1]
+            DatDepartamento = Departamento()
+            DatDepartamento.SetId(elemento[0])
+            DatDepartamento.SetNombre(elemento[1])
+            
+            temporal["Id"] = DatDepartamento.GetId()
+            temporal["Nombre"] = DatDepartamento.GetNombre()
             Lista_Departamento[str(contador)] = temporal;
             contador = contador + 1;
             
@@ -85,28 +89,36 @@ class Conexion:
             
     #2). Call proc Table SecEducacion_Departamental
     #Llamando al procedimiento almacenado que consulta la tabla SecEducacion_Departamental
-    def Seleccionar_SecEducacion_Departamental(self) -> None:
+    def Seleccionar_SecEducacion_Departamental(self) -> list:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarSecEducacion_Departamental()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
   
-        Datos_SecEducacionDeparta = []  
+        Lista_SecEducacionDeparta = []
+        
+        
         for elemento in cursor:
-            SecEdu = SecEducacion_Departamental()
-            SecEdu.SetId(elemento[0])
-            SecEdu.SetNombre(elemento[1])
-            SecEdu.SetDireccion(elemento[2])
-            SecEdu.SetEmail(elemento[3])
-            SecEdu.SetDepartamento(elemento[4])
-            Datos_SecEducacionDeparta.append(SecEdu)
+            DatSecEd = SecEducacion_Departamental()
+            DatSecEd.SetId(elemento[0])
+            DatSecEd.SetNombre(elemento[1])
+            DatSecEd.SetDireccion(elemento[2])
+            DatSecEd.SetEmail(elemento[3])
+            DatSecEd.SetDepartamentoId(elemento[4])
+            
+            Seceducacion = {
+            "Id": DatSecEd.GetId(),
+            "Nombre":  DatSecEd.GetNombre(),
+            "Direccion": DatSecEd.GetDireccion(),
+            "Email": DatSecEd.GetEmail(),
+            "Id_Departamento": DatSecEd.GetDepartamentoId()     
+            }
+            
+            Lista_SecEducacionDeparta.append(Seceducacion)
             
         cursor.close()
         conexion.close()
-
-        for SecEdu in Datos_SecEducacionDeparta:
-            print(f" Secretaria de Educacion: {SecEdu.GetId()} - {SecEdu.GetNombre()} - {SecEdu.GetDireccion()} - {SecEdu.GetEmail()} - {SecEdu.GetDepartamento()}")
-             
+        return Lista_SecEducacionDeparta;
     
     #Llamando al procedimiento almacenado que inserta datos en la tabla SecEducacion_Departamental       
     def Insertar_SecEducacion_Departamental(self, ID_Secretaria: int, Nombre: str, Direccion: str, Email: str, ID_Departamento: int) -> None:
@@ -152,32 +164,43 @@ class Conexion:
     
     #3). Call proc Table DirSecretaria_Educacion
     #Llamando al procedimiento almacenado que consulta la tabla DirSecretaria_Educacion
-    def Seleccionar_DirSecretaria_Educacion(self) -> None:
+    def Seleccionar_DirSecretaria_Educacion(self) -> dict:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarDirSecretaria_Educacion()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
-  
-        Datos_DirSecretaria_Educacion = []  
+        
+        Lista_DirSecretaria_Educacion: dict = {}
+        
+        contador = 0;
         for elemento in cursor:
-            DirSecEdu = DirSecretaria_Educacion()
-            DirSecEdu.SetID_Director(elemento[0])
-            DirSecEdu.SetNombre(elemento[1])
-            DirSecEdu.SetApellido(elemento[2])
-            DirSecEdu.SetGenero(elemento[3])
-            DirSecEdu.SetEmail(elemento[4])
-            DirSecEdu.SetDireccion(elemento[5])
-            DirSecEdu.SetFecha_contratacion(elemento[6])
-            DirSecEdu.SetFecha_Nacimiento(elemento[7])
-            DirSecEdu.SetID_Secretaria(elemento[8])
-            Datos_DirSecretaria_Educacion.append(DirSecEdu)
+            temporal: dict = {};
+            DatDirSecEdu = DirSecretaria_Educacion()
+            DatDirSecEdu.SetID_Director(elemento[0])
+            DatDirSecEdu.SetNombre(elemento[1])
+            DatDirSecEdu.SetApellido(elemento[2])
+            DatDirSecEdu.SetGenero(elemento[3])
+            DatDirSecEdu.SetEmail(elemento[4])
+            DatDirSecEdu.SetDireccion(elemento[5])
+            DatDirSecEdu.SetFecha_contratacion(elemento[6])
+            DatDirSecEdu.SetFecha_Nacimiento(elemento[7])
+            DatDirSecEdu.SetID_Secretaria(elemento[8])
+             
+            temporal["Id"] = DatDirSecEdu.GetID_Director()
+            temporal["Nombre"] = DatDirSecEdu.GetNombre()
+            temporal["Apellido"] = DatDirSecEdu.GetApellido()
+            temporal["Genero"] = DatDirSecEdu.GetGenero()
+            temporal["Email"] =DatDirSecEdu.GetEmail()
+            temporal["Direccion"] = DatDirSecEdu.GetDireccion()
+            temporal["Fecha_contratacion"] = DatDirSecEdu.GetFecha_contratacion()
+            temporal["Fecha_Nacimiento"] = DatDirSecEdu.GetFecha_Nacimiento()
+            temporal["ID_Secretaria"] = DatDirSecEdu.GetID_Secretaria()
+            Lista_DirSecretaria_Educacion[str(contador)] = temporal;
+            contador = contador + 1;
             
         cursor.close()
         conexion.close()
-
-        for DirSecEdu in Datos_DirSecretaria_Educacion:
-            print(f" Director Secretaria de Educacion: {DirSecEdu.GetID_Director()}- {DirSecEdu.GetNombre()} - {DirSecEdu.GetApellido()} - {DirSecEdu.GetGenero()} - {DirSecEdu.GetEmail()}") 
-            print(f"{DirSecEdu.GetDireccion()} - {DirSecEdu.GetFecha_contratacion()} - {DirSecEdu.GetFecha_Nacimiento()} - {DirSecEdu.GetID_Secretaria()}  ")
+        return Lista_DirSecretaria_Educacion
     
     #Llamando al procedimiento almacenado que inserta datos en la tabla DirSecretaria_Educacion       
     def Insertar_DirSecEducacion_Departamental(self, ID_Director: int, Nombre: str, Apellido: str, Genero: str, Email: str, Direccion: str, Fecha_contratación: datetime, Fecha_Nacimiento: datetime, ID_Secretaria: int) -> None:
@@ -222,26 +245,32 @@ class Conexion:
     #4). Call proc Table Regional
     #Llamando al procedimiento almacenado que consulta la tabla Regional
     
-    def Seleccionar_Regional(self) -> None:
+    def Seleccionar_Regional(self) -> dict:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarRegional()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
-  
-        Datos_Regional = []  
+        
+        Lista_Regional: dict = {}
+        
+        contador = 0;
         for elemento in cursor:
-            datRegional = Regional()
-            datRegional.SetID_Regional(elemento[0])
-            datRegional.SetNombre(elemento[1])
-            datRegional.SetID_Secretaria(elemento[2])
-            Datos_Regional.append(datRegional)
+            temporal: dict = {};
+            DatosRegional = Regional()
+            DatosRegional.SetID_Regional(elemento[0])
+            DatosRegional.SetNombre(elemento[1])
+            DatosRegional.SetID_Secretaria(elemento[2])
+            
+            temporal["Id"] = DatosRegional.GetID_Regional()
+            temporal["Nombre"] = DatosRegional.GetNombre()
+            temporal["ID_Secretaria"] = DatosRegional.GetID_Secretaria()
+            Lista_Regional[str(contador)] = temporal;
+            contador = contador + 1;
             
         cursor.close()
         conexion.close()
-
-        for datRegional in Datos_Regional:
-            print(f" Regional: {datRegional.GetID_Regional()}- {datRegional.GetNombre()} - {datRegional.GetID_Secretaria()}") 
-            
+        return Lista_Regional
+       
     #Llamando al procedimiento almacenado que inserta datos en la tabla Regional       
     def Insertar_Regional(self, ID_Regional: int, Nombre: str, ID_Secretaria: int) -> None:
         try:
@@ -284,32 +313,43 @@ class Conexion:
     #5). Call proc Table DirRegional
     #Llamando al procedimiento almacenado que consulta la tabla DirRegional
     
-    def Seleccionar_DirRegional(self) -> None:
+    def Seleccionar_DirRegional(self) -> dict:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarDirRegional()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
-  
-        Datos_DirRegional = []  
+        
+        Lista_DirRegional: dict = {}
+        
+        contador = 0;
         for elemento in cursor:
-            DirRegional = Dir_Regional()
-            DirRegional.SetID_DirRegional(elemento[0])
-            DirRegional.SetNombre(elemento[1])
-            DirRegional.SetApellido(elemento[2])
-            DirRegional.SetGenero(elemento[3])
-            DirRegional.SetEmail(elemento[4])
-            DirRegional.SetDireccion(elemento[5])
-            DirRegional.SetFecha_contratación(elemento[6])
-            DirRegional.SetFecha_Nacimiento(elemento[7])
-            DirRegional.SetID_Regional(elemento[0])
-            Datos_DirRegional.append(DirRegional)
+            temporal: dict = {};
+            DatosDirRegional = Dir_Regional()
+            DatosDirRegional.SetID_DirRegional(elemento[0])
+            DatosDirRegional.SetNombre(elemento[1])
+            DatosDirRegional.SetApellido(elemento[2])
+            DatosDirRegional.SetGenero(elemento[3])
+            DatosDirRegional.SetEmail(elemento[4])
+            DatosDirRegional.SetDireccion(elemento[5])
+            DatosDirRegional.SetFecha_contratación(elemento[6])
+            DatosDirRegional.SetFecha_Nacimiento(elemento[7])
+            DatosDirRegional.SetID_Regional(elemento[8])
+            
+            temporal["Id"] = DatosDirRegional.GetID_DirRegional()
+            temporal["Nombre"] = DatosDirRegional.GetNombre()
+            temporal["Apellido"] = DatosDirRegional.GetApellido()
+            temporal["Genero"] = DatosDirRegional.GetGenero()
+            temporal["Email"] = DatosDirRegional.GetEmail()
+            temporal["Direccion"] = DatosDirRegional.GetDireccion()
+            temporal["Fecha_contratacion"] = DatosDirRegional.GetFecha_contratación()
+            temporal["Fecha_Nacimiento"] = DatosDirRegional.GetFecha_Nacimiento()
+            temporal["ID_Regional"] = DatosDirRegional.GetID_Regional()
+            Lista_DirRegional[str(contador)] = temporal;
+            contador = contador + 1;
             
         cursor.close()
         conexion.close()
-
-        for DirRegional in Datos_DirRegional:
-            print(f" Director Regional: {DirRegional.GetID_DirRegional()}- {DirRegional.GetNombre()} - {DirRegional.GetApellido()} - {DirRegional.GetGenero()} - {DirRegional.GetEmail()}") 
-            print(f" {DirRegional.GetDireccion()} - {DirRegional.GetFecha_contratación()} - {DirRegional.GetFecha_Nacimiento()} - {DirRegional.GetID_Regional()}")
+        return Lista_DirRegional
     
     #Llamando al procedimiento almacenado que inserta datos en la tabla DirRegional      
     def Insertar_DirRegional(self, ID_DirRegional: int, Nombre: str, Apellido: str, Genero: str, Email: str, Direccion: str, Fecha_contratacion: datetime, Fecha_Nacimiento: datetime, ID_Regional: int) -> None:
@@ -352,26 +392,32 @@ class Conexion:
             
     #6). Call proc Table Ciudad
     #Llamando al procedimiento almacenado que consulta la tabla Ciudad
-    def Seleccionar_Ciudad(self) -> None:
+    def Seleccionar_Ciudad(self) -> dict:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarCiudad()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
-  
-        Datos_Ciudad = []  
+        
+        Lista_Ciudad: dict = {}
+        
+        contador = 0;
         for elemento in cursor:
-            dCiudad = Ciudad()
-            dCiudad.SetID_Ciudad(elemento[0])
-            dCiudad.SetNombre(elemento[1])
-            dCiudad.SetID_Regional(elemento[2])
-            Datos_Ciudad.append(dCiudad)
+            temporal: dict = {};
+            DatosCiudad = Ciudad()
+            DatosCiudad.SetID_Ciudad(elemento[0])
+            DatosCiudad.SetNombre(elemento[1])
+            DatosCiudad.SetID_Regional(elemento[2])
+            
+            temporal["Id"] = DatosCiudad.GetID_Ciudad()
+            temporal["Nombre"] = DatosCiudad.GetNombre()
+            temporal["ID_Regional"] = DatosCiudad.GetID_Regional()
+            Lista_Ciudad[str(contador)] = temporal;
+            contador = contador + 1;
             
         cursor.close()
         conexion.close()
-
-        for dCiudad in Datos_Ciudad:
-            print(f" Ciudad: {dCiudad.GetID_Ciudad()}- {dCiudad.GetNombre()} - {dCiudad.GetID_Regional()}") 
-            
+        return Lista_Ciudad;
+    
     #Llamando al procedimiento almacenado que inserta datos en la tabla Ciudad     
     def Insertar_Ciudad(self, ID_Ciudad: int, Nombre: str, ID_Regional: str) -> None:
         try:
@@ -414,26 +460,32 @@ class Conexion:
             
     #7). Call proc Table Comuna
     #Llamando al procedimiento almacenado que consulta la tabla Comuna
-    def Seleccionar_Comuna(self) -> None:
+    def Seleccionar_Comuna(self) -> dict:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarComuna()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
-  
-        Datos_Comuna = []  
+        
+        Lista_Comuna: dict = {}
+        
+        contador = 0;
         for elemento in cursor:
+            temporal: dict = {};
             dComuna = Comuna()
             dComuna.SetId(elemento[0])
             dComuna.SetNombre(elemento[1])
             dComuna.SetID_Ciudad(elemento[2])
-            Datos_Comuna.append(dComuna)
+           
+            temporal["Id"] = dComuna.GetId()
+            temporal["Nombre"] = dComuna.GetNombre()
+            temporal["ID_Ciudad"] = dComuna.GetID_Ciudad()
+            Lista_Comuna[str(contador)] = temporal;
+            contador = contador + 1;
             
         cursor.close()
         conexion.close()
-
-        for dComuna in Datos_Comuna:
-            print(f" Comuna: {dComuna.GetId()}- {dComuna.GetNombre()} - {dComuna.GetID_Ciudad()}") 
-            
+        return Lista_Comuna;
+    
      #Llamando al procedimiento almacenado que inserta datos en la tabla Comuna    
     def Insertar_Comuna(self, ID_Comuna: int, Nombre: str, ID_Ciudad: str) -> None:
         try:
@@ -477,14 +529,17 @@ class Conexion:
     #8). Call proc Table director comuna
     #Llamando al procedimiento almacenado que consulta la tabla director comuna
     
-    def Seleccionar_DirComuna(self) -> None:
+    def Seleccionar_DirComuna(self) -> dict:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarDirectorComuna()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
-  
-        Datos_DirComuna = []  
+        
+        Lista_DirComuna: dict = {}
+        
+        contador = 0;
         for elemento in cursor:
+            temporal: dict = {};
             DirComuna = Director_Comuna()
             DirComuna.SetID_Director(elemento[0])
             DirComuna.SetNombre(elemento[1])
@@ -495,15 +550,23 @@ class Conexion:
             DirComuna.SetFecha_contratación(elemento[6])
             DirComuna.SetFecha_Nacimiento(elemento[7])
             DirComuna.SetID_Comuna(elemento[8])
-            Datos_DirComuna.append(DirComuna)
+            
+            temporal["Id"] = DirComuna.GetID_Comuna()
+            temporal["Nombre"] = DirComuna.GetNombre()
+            temporal["Apellido"] = DirComuna.GetApellido()
+            temporal["Genero"] = DirComuna.GetGenero()
+            temporal["Email"] = DirComuna.GetEmail()
+            temporal["Direccion"] = DirComuna.GetDireccion()
+            temporal["Fecha_contratacion"] = DirComuna.GetFecha_contratación()
+            temporal["Fecha_Nacimiento"] = DirComuna.GetFecha_Nacimiento()
+            temporal["ID_Comuna"] = DirComuna.GetID_Comuna()
+            Lista_DirComuna[str(contador)] = temporal;
+            contador = contador + 1;
             
         cursor.close()
         conexion.close()
-
-        for DirComuna in Datos_DirComuna:
-            print(f" Director Comuna: {DirComuna.GetID_Director()}- {DirComuna.GetNombre()} - {DirComuna.GetApellido()} - {DirComuna.GetGenero()} - {DirComuna.GetEmail()}") 
-            print(f" {DirComuna.GetDireccion()} - {DirComuna.GetFecha_contratación()} - {DirComuna.GetFecha_Nacimiento()} - {DirComuna.GetID_Comuna()}")
-            
+        return Lista_DirComuna
+       
     #Llamando al procedimiento almacenado que inserta datos en la tabla DirComuna    
     def Insertar_DirectorComuna(self, ID_Director: int, Nombre: str, Apellido: str, Genero: str, Email: str, Direccion: str, Fecha_contratación: datetime, Fecha_Nacimiento: datetime, ID_Comuna: int) -> None:
         try:
@@ -546,28 +609,36 @@ class Conexion:
             
     #9). Call proc Table colegio
     #Llamando al procedimiento almacenado que consulta la tabla Colegio
-    def Seleccionar_Colegio(self) -> None:
+    def Seleccionar_Colegio(self) -> dict:
         conexion = pyodbc.connect(self.strConnection)
         consulta: str = "{CALL SeleccionarColegio()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
   
-        Datos_Colegio = []  
+        Lista_Colegio: dict = {}
+        
+        contador = 0;
         for elemento in cursor:
+            temporal: dict = {};
             dtColegio = Colegio()
             dtColegio.SetId(elemento[0])
             dtColegio.SetNombre(elemento[1])
             dtColegio.SetDireccion(elemento[2])
             dtColegio.SetTelefono(elemento[3])
             dtColegio.SetComunaId(elemento[4])
-            Datos_Colegio.append(dtColegio)
+          
+            temporal["Id"] = dtColegio.GetId()
+            temporal["Nombre"] = dtColegio.GetNombre()
+            temporal["Direccion"] = dtColegio.GetDireccion()
+            temporal["Telefono"] = dtColegio.GetTelefono()
+            temporal["ID_Comuna"] = dtColegio.GetComunaId()
+            Lista_Colegio[str(contador)] = temporal;
+            contador = contador + 1;
             
         cursor.close()
         conexion.close()
-
-        for dtColegio in Datos_Colegio:
-            print(f" Colegio: {dtColegio.GetId()}- {dtColegio.GetNombre()} - {dtColegio.GetDireccion()} - {dtColegio.GetTelefono()} - {dtColegio.GetComunaId()}") 
-            
+        return Lista_Colegio
+   
      #Llamando al procedimiento almacenado que inserta datos en la tabla Colegio      
     def Insertar_Colegio(self, ID_Colegio: int, Nombre: str, Direccion: str, Telefono: str, ID_Comuna: int) -> None:
         try:
