@@ -1,15 +1,75 @@
 from Repositorio.Conexion_BD import Conexion
 import flask;
 import sys;
-import datetime;
+import binascii;
+import os;
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity
+)
+from Crypto.Cipher import AES
+class EncriptarAES1:
+    secretKey = os.urandom(32)
 
+    def Encriptar(self, valor: str) -> tuple:
+        """
+        Encripta un valor usando AES en modo GCM.
+        """
+        aesCipher = AES.new(self.secretKey, AES.MODE_GCM)
+        ciphertext, authTag = aesCipher.encrypt_and_digest(str.encode(valor))
+        print(f"Texto claro: {valor}")
+        print(f"Texto cifrado: {binascii.hexlify(ciphertext).decode()}")
+        return (ciphertext, aesCipher.nonce, authTag)
+
+    def Descifrar(self, valor: tuple) -> str:
+        """
+        Desencripta un valor previamente encriptado con AES en modo GCM.
+        """
+        (ciphertext, nonce, authTag) = valor
+        aesCipher = AES.new(self.secretKey, AES.MODE_GCM, nonce)
+        plaintext = aesCipher.decrypt_and_verify(ciphertext, authTag)
+        return plaintext.decode()
+    
+aes_instance = EncriptarAES1()
 app = flask.Flask(__name__)
-               
-# http://localhost:4040/main3/CargarPersonas/{}
-@app.route('/main3/CargarPersonas/<string:entrada>', methods=["GET"]) # methods=["POST"]
+app.config['JWT_SECRET_KEY'] = 'KJhisdy878779ghdfgh45645634564356'  
+jwt = JWTManager(app)
+
+USERS_DB = {
+    "admin": aes_instance.Encriptar("12345"),
+    "user1": aes_instance.Encriptar("12345")
+}
+
+@app.route('/login', methods=['POST'])
+def login():
+    """
+    Endpoint para autenticar usuarios y generar un token JWT.
+    """
+    data = flask.request.get_json()
+
+    if not data or 'username' not in data or 'password' not in data:
+        return flask.jsonify({"msg": "Faltan parámetros"}), 400
+
+    username = data['username']
+    password = data['password']
+
+    # Validar usuario
+    if username not in USERS_DB or aes_instance.Descifrar(USERS_DB[username]) != password:
+        return flask.jsonify({"msg": "Usuario o contraseña incorrectos"}), 401
+
+    # Generar token
+    access_token = create_access_token(identity=username)
+    return flask.jsonify(access_token=access_token), 200 
+# http://localhost:4040/main3/CargarDatos/{}
+@app.route('/main3/CargarDatos/<string:entrada>', methods=["GET"]) # methods=["POST"]
+@jwt_required()
 def SELECT(entrada: str) -> str :
     Datos  = {};
     try:
+        current_user = get_jwt_identity()
+        print(f"Usuario autenticado: {current_user}")
         conexion: Conexion = Conexion();
         Datos ["Departamentos"] = conexion.SeleccionarDepartamento();
         Datos ["SecEducacion_Departamental"] = conexion.Seleccionar_SecEducacion_Departamental();

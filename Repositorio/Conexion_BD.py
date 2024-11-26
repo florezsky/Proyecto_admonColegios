@@ -11,7 +11,7 @@ from Aplicacion.Aplicacion_admon import (
 #conexión a la base de datos      
 class Conexion:
     strConnection: str = """
-        Driver={MySQL ODBC 9.1 Unicode Driver};
+        Driver={MySQL ODBC 9.0 Unicode Driver};
         Server=localhost;
         Database=db_colegios;
         PORT=3306;
@@ -20,25 +20,23 @@ class Conexion:
         
     #1). Call proc Table Departamento 
     #Llamando al procedimiento almacenado que consulta la tabla departamento
-    def SeleccionarDepartamento(self) -> dict:
+    def SeleccionarDepartamento(self) -> list:
         conexion = pyodbc.connect(self.strConnection, autocommit=True)
         consulta: str = "{CALL SeleccionarDepartamento()}"  
         cursor = conexion.cursor()
         cursor.execute(consulta)
   
-        Lista_Departamento: dict = {}
+        Lista_Departamento = []
         
-        contador = 0;
         for elemento in cursor:
-            temporal: dict = {};
-            DatDepartamento = Departamento()
-            DatDepartamento.SetId(elemento[0])
-            DatDepartamento.SetNombre(elemento[1])
             
-            temporal["Id"] = DatDepartamento.GetId()
-            temporal["Nombre"] = DatDepartamento.GetNombre()
-            Lista_Departamento[str(contador)] = temporal;
-            contador = contador + 1;
+            SecDepartamento= {
+            "Id": elemento[0],
+            "Nombre": elemento[1],
+            }
+            
+            Lista_Departamento.append(SecDepartamento)
+
             
         cursor.close()
         conexion.close()
